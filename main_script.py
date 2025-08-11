@@ -1,5 +1,3 @@
-# main_script.py
-
 import os
 import base64
 import json
@@ -12,35 +10,19 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 
-# ==============================================================================
-# --- PHẦN CẤU HÌNH ---
-# ==============================================================================
-
-# 1. Thông tin Email
 EMAIL_SENDER = 'smartpit@smartpit.nttcom.ne.jp'
 EMAIL_SUBJECT = '【Ｓｍａｒｔ　Ｐｉｔ】収納情報のお知らせ'
 
-# 2. Thông tin Caspio (Đọc từ biến môi trường để bảo mật)
 CASPIO_API_URL_BASE = 'https://d2hbz700.caspio.com'
 CASPIO_API_CLIENT_ID = os.getenv('CASPIO_CLIENT_ID')
 CASPIO_API_CLIENT_SECRET = os.getenv('CASPIO_CLIENT_SECRET')
 CASPIO_TABLE_NAME = 'SmartPitDaThanhToan'
 
-# 3. Thông tin xác thực Google
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 CLIENT_SECRET_FILE = 'credentials.json'
 TOKEN_FILE = 'token.json'
 
-# ==============================================================================
-# --- PHẦN MÃ NGUỒN - PHIÊN BẢN CUỐI CÙNG ---
-# ==============================================================================
-
 def setup_credentials_from_env():
-    """
-    NEW FUNCTION: Creates credentials files from GitHub Secrets.
-    This runs only in the GitHub Actions environment.
-    """
-    # Check if the environment variables exist
     creds_json_str = os.getenv('GMAIL_CREDENTIALS_JSON')
     token_json_str = os.getenv('GMAIL_TOKEN_JSON')
 
@@ -73,7 +55,6 @@ def get_gmail_service():
             
     return build('gmail', 'v1', credentials=creds)
 
-# ... (All other functions like search_emails, parse_email_content, etc., remain exactly the same) ...
 def search_emails(service, user_id='me'):
     try:
         target_tz = pytz.timezone('Asia/Ho_Chi_Minh')
@@ -165,7 +146,6 @@ def push_to_caspio(data, token):
 
 def main():
     """Hàm chính điều phối toàn bộ quy trình."""
-    # NEW: Call the setup function first
     setup_credentials_from_env()
 
     print("🚀 Bắt đầu quá trình đồng bộ hóa Email sang Caspio...")
