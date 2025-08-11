@@ -58,6 +58,7 @@ Bước này **bắt buộc** phải thực hiện lần đầu tiên để tạ
 
 2.  **Tạo các "Secrets":**
     -   Nhấn **New repository secret** và tạo 4 secret sau đây. Đây là bước quan trọng để bảo mật thông tin của bạn.
+        -   `CASPIO_API_URL`: Dán URL của Caspio.
         -   `CASPIO_CLIENT_ID`: Dán giá trị Client ID của Caspio.
         -   `CASPIO_CLIENT_SECRET`: Dán giá trị Client Secret của Caspio.
         -   `GMAIL_CREDENTIALS_JSON`: Mở tệp `credentials.json` bạn vừa tạo, sao chép **toàn bộ nội dung** và dán vào đây.
