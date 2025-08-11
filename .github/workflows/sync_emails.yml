@@ -40,6 +40,8 @@ jobs:
         
       - name: Run the sync script
         env:
+          CASPIO_API_URL: ${{ secrets.CASPIO_API_URL }}
           CASPIO_CLIENT_ID: ${{ secrets.CASPIO_CLIENT_ID }}
           CASPIO_CLIENT_SECRET: ${{ secrets.CASPIO_CLIENT_SECRET }}
+          
         run: python main_script.py
