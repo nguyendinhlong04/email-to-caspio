@@ -24,7 +24,6 @@ jobs:
         
       - name: Run the sync script
         env:
-          # Pass all secrets as environment variables
           CASPIO_CLIENT_ID: ${{ secrets.CASPIO_CLIENT_ID }}
           CASPIO_CLIENT_SECRET: ${{ secrets.CASPIO_CLIENT_SECRET }}
           GMAIL_CREDENTIALS_JSON: ${{ secrets.GMAIL_CREDENTIALS_JSON }}
