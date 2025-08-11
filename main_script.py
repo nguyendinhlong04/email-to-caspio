@@ -9,9 +9,6 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
-from dotenv import load_dotenv
-
-load_dotenv()
 
 EMAIL_SENDER = 'smartpit@smartpit.nttcom.ne.jp'
 EMAIL_SUBJECT = '【Ｓｍａｒｔ　Ｐｉｔ】収納情報のお知らせ'
