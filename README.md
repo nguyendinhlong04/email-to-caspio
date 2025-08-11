@@ -14,21 +14,6 @@ Dự án này chứa một kịch bản Python được thiết kế để tự 
 
 ---
 
-## 📁 Cấu trúc thư mục
-
-Để dự án hoạt động trên GitHub Actions, bạn cần đảm bảo cấu trúc thư mục như sau:
-
-
-ten-repo-cua-ban/
-├── .github/
-│   └── workflows/
-│       └── sync_emails.yml   # Tệp điều khiển lịch chạy của GitHub Actions
-├── main_script.py            # Kịch bản Python xử lý logic chính
-└── requirements.txt          # Danh sách các thư viện Python cần thiết
-
-
----
-
 ## 🛠️ Hướng dẫn cài đặt và cấu hình
 
 ### 1. Điều kiện tiên quyết
