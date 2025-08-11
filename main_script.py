@@ -1,3 +1,5 @@
+# main_script.py
+
 import os
 import base64
 import json
@@ -10,17 +12,47 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 
+# ==============================================================================
+# --- PHẦN CẤU HÌNH ---
+# ==============================================================================
+
+# 1. Thông tin Email
 EMAIL_SENDER = 'smartpit@smartpit.nttcom.ne.jp'
 EMAIL_SUBJECT = '【Ｓｍａｒｔ　Ｐｉｔ】収納情報のお知らせ'
 
-CASPIO_API_URL_BASE = os.getenv('CASPIO_API_URL')
+# 2. Thông tin Caspio (Đọc từ biến môi trường để bảo mật)
+CASPIO_API_URL_BASE = 'https://d2hbz700.caspio.com'
 CASPIO_API_CLIENT_ID = os.getenv('CASPIO_CLIENT_ID')
 CASPIO_API_CLIENT_SECRET = os.getenv('CASPIO_CLIENT_SECRET')
 CASPIO_TABLE_NAME = 'SmartPitDaThanhToan'
 
+# 3. Thông tin xác thực Google
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 CLIENT_SECRET_FILE = 'credentials.json'
 TOKEN_FILE = 'token.json'
+
+# ==============================================================================
+# --- PHẦN MÃ NGUỒN - PHIÊN BẢN CUỐI CÙNG ---
+# ==============================================================================
+
+def setup_credentials_from_env():
+    """
+    NEW FUNCTION: Creates credentials files from GitHub Secrets.
+    This runs only in the GitHub Actions environment.
+    """
+    # Check if the environment variables exist
+    creds_json_str = os.getenv('GMAIL_CREDENTIALS_JSON')
+    token_json_str = os.getenv('GMAIL_TOKEN_JSON')
+
+    if creds_json_str and not os.path.exists(CLIENT_SECRET_FILE):
+        print(f"Creating {CLIENT_SECRET_FILE} from environment variable.")
+        with open(CLIENT_SECRET_FILE, 'w') as f:
+            f.write(creds_json_str)
+
+    if token_json_str and not os.path.exists(TOKEN_FILE):
+        print(f"Creating {TOKEN_FILE} from environment variable.")
+        with open(TOKEN_FILE, 'w') as f:
+            f.write(token_json_str)
 
 def get_gmail_service():
     """Xác thực với Google và trả về một đối tượng service để tương tác với Gmail."""
@@ -41,26 +73,18 @@ def get_gmail_service():
             
     return build('gmail', 'v1', credentials=creds)
 
+# ... (All other functions like search_emails, parse_email_content, etc., remain exactly the same) ...
 def search_emails(service, user_id='me'):
-    """
-    Tìm kiếm email theo khoảng thời gian động.
-    Từ 00:00:00 của ngày hôm nay đến thời điểm hiện tại (múi giờ +07).
-    """
     try:
         target_tz = pytz.timezone('Asia/Ho_Chi_Minh')
         now_in_target_tz = datetime.now(target_tz)
-        
         start_of_day = now_in_target_tz.replace(hour=0, minute=0, second=0, microsecond=0)
-        
         after_timestamp = int(start_of_day.timestamp())
         before_timestamp = int(now_in_target_tz.timestamp())
-
         query = f"from:({EMAIL_SENDER}) subject:('{EMAIL_SUBJECT}') after:{after_timestamp} before:{before_timestamp}"
         print(f"Đang tìm kiếm với truy vấn động: {query}")
-        
         response = service.users().messages().list(userId=user_id, q=query).execute()
         all_messages = []
-        
         while 'messages' in response:
             all_messages.extend(response['messages'])
             if 'nextPageToken' in response:
@@ -68,25 +92,21 @@ def search_emails(service, user_id='me'):
                 response = service.users().messages().list(userId=user_id, q=query, pageToken=page_token).execute()
             else:
                 break
-                
         return all_messages
     except Exception as e:
         print(f"Lỗi khi tìm kiếm email: {e}")
         return []
 
 def get_email_details(service, msg_id, user_id='me'):
-    """Lấy nội dung và ngày tháng của email."""
     try:
         message = service.users().messages().get(userId=user_id, id=msg_id, format='full').execute()
         payload = message.get('payload', {})
         headers = payload.get('headers', [])
-
         date_str = None
         for header in headers:
             if header.get('name') == 'Date':
                 date_str = header.get('value')
                 break
-        
         content = ""
         data = None
         if 'parts' in payload:
@@ -96,17 +116,14 @@ def get_email_details(service, msg_id, user_id='me'):
                     break
         elif 'body' in payload:
             data = payload.get('body', {}).get('data')
-
         if data:
             content = base64.urlsafe_b64decode(data.encode('ASCII')).decode('iso-2022-jp', errors='ignore')
-        
         return content, date_str
     except Exception as e:
         print(f"Không thể lấy chi tiết email ID {msg_id}: {e}")
         return None, None
 
 def parse_email_content(content):
-    """Trích xuất dữ liệu bằng cách phân tích từng dòng."""
     if not content: return None
     card_number, bill_id, detail_link = None, None, None
     lines = content.split('\n')
@@ -119,7 +136,6 @@ def parse_email_content(content):
     return {'MaThanhToan': card_number.replace('-', ''), 'IDthanhtoan': bill_id, 'Linkcheck': detail_link}
 
 def get_caspio_token():
-    """Lấy Access Token từ API của Caspio."""
     if not CASPIO_API_CLIENT_ID or not CASPIO_API_CLIENT_SECRET:
         print("Lỗi: CASPIO_CLIENT_ID hoặc CASPIO_CLIENT_SECRET chưa được thiết lập trong biến môi trường.")
         return None
@@ -132,7 +148,6 @@ def get_caspio_token():
         return None
 
 def push_to_caspio(data, token):
-    """Đẩy một bản ghi dữ liệu lên bảng Caspio."""
     if not data: return False
     headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
     url = f'{CASPIO_API_URL_BASE}/rest/v2/tables/{CASPIO_TABLE_NAME}/records'
@@ -150,6 +165,9 @@ def push_to_caspio(data, token):
 
 def main():
     """Hàm chính điều phối toàn bộ quy trình."""
+    # NEW: Call the setup function first
+    setup_credentials_from_env()
+
     print("🚀 Bắt đầu quá trình đồng bộ hóa Email sang Caspio...")
     gmail_service = get_gmail_service()
     caspio_token = get_caspio_token()
@@ -161,10 +179,8 @@ def main():
         print("Không tìm thấy email nào mới trong khoảng thời gian vừa qua.")
         return
     print(f"🔎 Tìm thấy {len(messages)} email phù hợp. Bắt đầu xử lý...")
-
     messages.reverse()
     print("ℹ️ Sẽ xử lý email theo thứ tự từ mới nhất đến cũ nhất.")
-
     success_count, fail_count = 0, 0
     target_tz = pytz.timezone('Asia/Ho_Chi_Minh')
     for msg_info in messages:
