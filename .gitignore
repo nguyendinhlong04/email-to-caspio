@@ -1,0 +1,7 @@
+# Ignore sensitive Google credentials
+credentials.json
+token.json
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
