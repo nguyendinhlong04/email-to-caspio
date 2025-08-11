@@ -1,10 +1,8 @@
 name: Sync Gmail to Caspio
 
 on:
-  # Chạy tự động mỗi 10 phút
   schedule:
     - cron: '*/10 * * * *'
-  # Cho phép chạy thủ công từ tab Actions trên GitHub
   workflow_dispatch:
 
 jobs:
@@ -28,6 +26,16 @@ jobs:
         run: |
           echo "${{ secrets.GMAIL_CREDENTIALS_JSON }}" > credentials.json
           echo "${{ secrets.GMAIL_TOKEN_JSON }}" > token.json
+      
+      # --- ADD THIS NEW STEP FOR DEBUGGING ---
+      - name: Debug file contents
+        run: |
+          echo "--- Content of credentials.json ---"
+          cat credentials.json
+          echo "--- End of credentials.json ---"
+          echo "--- Content of token.json ---"
+          cat token.json
+          echo "--- End of token.json ---"
         
       - name: Run the sync script
         env:
