@@ -22,20 +22,21 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # NEW DEBUGGING STEP: This will test the secrets directly.
+      - name: Validate JSON Secrets
+        env:
+          CREDENTIALS_JSON: ${{ secrets.GMAIL_CREDENTIALS_JSON }}
+          TOKEN_JSON: ${{ secrets.GMAIL_TOKEN_JSON }}
+        run: |
+          echo "--- Validating GMAIL_CREDENTIALS_JSON ---"
+          python -c "import json, os; json.loads(os.environ['CREDENTIALS_JSON'])" && echo "✅ credentials.json is VALID" || echo "❌ credentials.json is INVALID"
+          echo "--- Validating GMAIL_TOKEN_JSON ---"
+          python -c "import json, os; json.loads(os.environ['TOKEN_JSON'])" && echo "✅ token.json is VALID" || echo "❌ token.json is INVALID"
+
       - name: Create Google credentials from secrets
         run: |
           echo "${{ secrets.GMAIL_CREDENTIALS_JSON }}" > credentials.json
           echo "${{ secrets.GMAIL_TOKEN_JSON }}" > token.json
-      
-      # --- ADD THIS NEW STEP FOR DEBUGGING ---
-      - name: Debug file contents
-        run: |
-          echo "--- Content of credentials.json ---"
-          cat credentials.json
-          echo "--- End of credentials.json ---"
-          echo "--- Content of token.json ---"
-          cat token.json
-          echo "--- End of token.json ---"
         
       - name: Run the sync script
         env:
