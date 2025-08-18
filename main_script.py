@@ -50,6 +50,20 @@ SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 CLIENT_SECRET_FILE = 'credentials.json'
 TOKEN_FILE = 'token.json'
 
+def setup_credentials_from_env():
+    creds_json_str = os.getenv('GMAIL_CREDENTIALS_JSON')
+    token_json_str = os.getenv('GMAIL_TOKEN_JSON')
+
+    if creds_json_str and not os.path.exists(CLIENT_SECRET_FILE):
+        print(f"Creating {CLIENT_SECRET_FILE} from environment variable.")
+        with open(CLIENT_SECRET_FILE, 'w') as f:
+            f.write(creds_json_str)
+
+    if token_json_str and not os.path.exists(TOKEN_FILE):
+        print(f"Creating {TOKEN_FILE} from environment variable.")
+        with open(TOKEN_FILE, 'w') as f:
+            f.write(token_json_str)
+
 def get_gmail_service():
     """Xác thực với Google và trả về một đối tượng service để tương tác với Gmail."""
     creds = None
