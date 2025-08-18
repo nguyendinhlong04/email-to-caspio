@@ -178,6 +178,7 @@ def push_to_caspio(data, token):
 
 def main():
     """Hàm chính điều phối toàn bộ quy trình."""
+    setup_credentials_from_env()
     logger.info("🚀 Bắt đầu quá trình đồng bộ hóa Email sang Caspio...")
     gmail_service = get_gmail_service()
     caspio_token = get_caspio_token()
