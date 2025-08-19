@@ -2,7 +2,7 @@ name: Sync Gmail to Caspio
 
 on:
   schedule:
-    - cron: "0,30 22-23,0-12 * * *"
+    - cron: "*/10 22-23,0-12 * * *"
   workflow_dispatch:
 
 jobs:
